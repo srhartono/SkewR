@@ -182,7 +182,7 @@ sub check_sanity {
 	my $seqFile   = $main::opt_s;
 	my $modelFile = $main::opt_m;
 	my $threshold = defined($main::opt_t) ? $main::opt_t : 0.95;
-	my $projName  = defined($main::opt_n) ? $main::opt_n : (print_usage() and die "Fatal Error: Missing Output Directory (-n)\n\n");
+	my $projName  = defined($main::opt_o) ? $main::opt_o : (print_usage() and die "Fatal Error: Missing Output Directory (-o)\n\n");
 	my $threads   = defined($main::opt_z) ? $main::opt_z : 1;
 
 	my $length    = defined($main::opt_l) ? $main::opt_l : 300;
@@ -299,14 +299,14 @@ sub interrupt {
 }
 sub print_usage {
         print "
-usage: $0 [options] -s <Sequence> -m <Model> -g <Gene File> -b <CpG file> -n <Output Directory>
+usage: $0 [options] -s <Sequence> -m <Model> -g <Gene File> -b <CpG file> -o <Output Directory>
 
 Arguments:
 -s: Sequence file (Fasta format)
 -m: Model file (StochHMM HMM format)
 -g: Gene file (BED 6+ format)
 -b: CpG file (BED 3+ format)
--n: Output Directory (string)
+-o: Output Directory (string)
 
 Options:
 
@@ -316,7 +316,7 @@ Options:
 -z: Thread number (integer)
 
 2. Skew Classes Parameters:
--n: Project name, will be used as output directory (string)
+-o: Project name, will be used as output directory (string)
 -x: Intersect with N,N bp of Transcription Start Site (default: -500 +1500 of TSS)
     Example: -x -500,1500 is -500 +1500 of TSS
 -y: Intersect with Transcription Termintation Site (default: -1500 +500 of TTS)
@@ -346,14 +346,14 @@ package StochHMMToBed
 
 =head1 USAGE
 
-usage: $0 [options] -s <Sequence> -m <Model> -g <Gene File> -b <CpG file> -n <Output Directory>
+usage: $0 [options] -s <Sequence> -m <Model> -g <Gene File> -b <CpG file> -o <Output Directory>
 
  Arguments:
  -s: Sequence file (Fasta format)
  -m: Model file (StochHMM HMM format)
  -g: Gene file (BED 6+ format)
  -b: CpG file (BED 3+ format)
- -n: Output Directory (string)
+ -o: Output Directory (string)
 
 
 Options:
@@ -373,41 +373,9 @@ Options:
 
 =head1 SYNOPSIS
 
-Running stochhmm on human stochhmm output file "human.prob":
+Running SkewR on human genome 19 hg19.fa:
 
-Perl ./StochHMM2bed.pl -o human.bed -s C_SKEW,G_SKEW -c r255g0b0,r0g0b255 -t 0.95 -l 300 human.prob
-
-=head1 DESCRIPTION
-
-This script parse SkewR posterior output file into a concatenated bed file. 
-For Bed format information, go to http://genome.ucsc.edu/FAQ/FAQformat.html#format1
-
-The Bed file format is zero-based start and end. Therefore if a peak in StochHMM start 
-at coordinate A and end at coordinate B, the bed file will start at A and end at B.
-
-For example, if the StochHMM probability of a one state is:
-
- Posterior Probabilities Table
- Model:	MODEL
- Sequence:	>chr1 XXXXX
- Probability of Sequence from Forward: Natural Log'd	-593058.2935
- Probability of Sequence from Backward:Natural Log'd	-593058.9325
- Position	STATE
- 100	1
- 101	1
- 102	1
- 103	1
- 104	1
- 105	1
- 536	1
- 537	1
- 538	1
- (etc...)
-
-The coordinates below will be written in the output bed file:
-
- chr1	100	105	STATE	1	+	100	105	0,0,0
- chr1	536	538	STATE	1	+	536	538	0,0,0
+Perl bin/RunGC-Skew.pl -s hg19.fa -m model/GC_SKEW_7600.hmm -g hg19_gene.bed -b hg19_cpg.bed -o MyResult
 
 =head1 AUTHOR
 

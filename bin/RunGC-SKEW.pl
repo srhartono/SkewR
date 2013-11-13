@@ -31,8 +31,8 @@ use Thread;
 use Thread::Queue;
 use Getopt::Std;
 use SkewR;
-use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_n $opt_z $opt_l $opt_g $opt_b);
-getopts("s:m:t:vhn:z:l:g:b:");
+use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_o $opt_z $opt_l $opt_g $opt_b);
+getopts("s:m:t:vho:z:l:g:b:");
 
 my $version = "\nVERSION: 11/1/2013\n\n";
 die $version if ($opt_v);
