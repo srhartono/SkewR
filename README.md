@@ -7,6 +7,11 @@ SkewR is a program that uses Hidden Markov Model (HMM) software by Paul Lott (St
 
 Human SkewR peak and gene cluster is also available in our website (http://www.mcb.ucdavis.edu/faculty-labs/chedin/Resources.html)
 
+Model files provided are human-trained:  
+1. High threshold: GC_SKEW_1mil.hmm  
+2. Med threshold: GC_SKEW_20k.hmm  
+3. Low threshold: GC_SKEW_7600l.hmm  
+
 ## 1. Citation
 
 If you use SkewR or our data for your publication, please cite:
