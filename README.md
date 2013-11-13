@@ -63,7 +63,7 @@ Length is using \"equal or more than\" format (only take peak length >= -l)
 
 ## 5. Contributors
 
-Created SkewR:
+Created SkewR:  
 Paul Ginno (http://www.fmi.ch/research/groupleader/website/schuebeler/lab_postdocs.php)  
 Paul Lott (https://github.com/lottpaul)  
 
