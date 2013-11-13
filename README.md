@@ -1,4 +1,4 @@
-#SkewR 1.00
+#SkewR 1.00b
 ---
 
 ## 1. Installation
