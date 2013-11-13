@@ -342,7 +342,7 @@ sub getFilename {
 
 =head1 NAME
 
-package StochHMMToBed
+package SkewR
 
 =head1 USAGE
 
