@@ -161,13 +161,15 @@ sub check_sanity {
 	
 	# Check if bedtools is installed
 	my $bedtoolsCheck = `which bedtools`;
-	die "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if not defined($bedtoolsCheck);
+	die "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if $bedtoolsCheck =~ /^$/;
 	
 	# Check bedtools version, and warn user to install correct version if it's not defined or less than 2
 	my $bedtoolsVer = `bedtools --version`;
-	warn "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if not defined($bedtoolsVer);
-	($bedtoolsVer) = $bedtoolsVer =~ /bedtools v(\d+)/;
-	warn "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if ($bedtoolsVer) < 2;
+	warn "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if $bedtoolsVer =~ /^$/;
+	if (defined($bedtoolsVer)) {
+		($bedtoolsVer) = $bedtoolsVer =~ /bedtools v(\d+)/;
+		warn "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if ($bedtoolsVer) < 2;
+	}
 
 	# Help
 	print_usage() and die "\n"	if defined($main::opt_h);
