@@ -377,11 +377,14 @@ Running SkewR on human genome 19 hg19.fa:
 
 Perl bin/RunGC-Skew.pl -s hg19.fa -m model/GC_SKEW_7600.hmm -g hg19_gene.bed -b hg19_cpg.bed -o MyResult
 
-=head1 AUTHOR
+=head1 CONTRIBUTORS
 
-Paul Ginno (http://www.fmi.ch/research/groupleader/website/schuebeler/lab_postdocs.php)  
-Paul Lott (https://github.com/lottpaul)  
-Stella Hartono (srhartono@ucdavis.edu) 
+Created SkewR:
+ Paul Ginno (http://www.fmi.ch/research/groupleader/website/schuebeler/lab_postdocs.php)  
+ Paul Lott (https://github.com/lottpaul)  
+
+Manages and updates:
+ Stella Hartono (srhartono@ucdavis.edu) 
 
 =head1 COPYRIGHT
 

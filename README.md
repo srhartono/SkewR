@@ -61,10 +61,13 @@ Options:
 -l: Minimum length of a SkewR peak to be recorded (integer). Default: 300  
 Length is using \"equal or more than\" format (only take peak length >= -l)
 
-## 5. Authors
+## 5. Contributors
 
+Created SkewR:
 Paul Ginno (http://www.fmi.ch/research/groupleader/website/schuebeler/lab_postdocs.php)  
 Paul Lott (https://github.com/lottpaul)  
+
+Manages and updates:
 Stella Hartono (srhartono@ucdavis.edu)  
 
 ## 6. Copyright
