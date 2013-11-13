@@ -193,7 +193,7 @@ sub check_sanity {
 	die "Please intersect only with either TSS or TTS\n" if defined($main::opt_x) and defined($main::opt_y);
 	my $offset = defined($main::opt_x) ? $main::opt_x : defined($main::opt_y) ? $main::opt_y : "0,0";
 	if ($offset ne 1) {
-		die "-x or -y must be two comma separated integers (e.g. -x -200,500): $offset\n" if $offset !~ /^\d+\,\d+$/;
+		die "-x or -y must be two comma separated integers (e.g. -x -200,500): $offset\n" if $offset !~ /^\-?\d+\,\-?\d+$/;
 	}
 
 	# Sequence
@@ -379,11 +379,13 @@ Perl bin/RunGC-Skew.pl -s hg19.fa -m model/GC_SKEW_7600.hmm -g hg19_gene.bed -b 
 
 =head1 AUTHOR
 
-Stella R. Hartono (srhartono@ucdavis.edu)
+Paul Ginno (http://www.fmi.ch/research/groupleader/website/schuebeler/lab_postdocs.php)  
+Paul Lott (https://github.com/lottpaul)  
+Stella Hartono (srhartono@ucdavis.edu) 
 
 =head1 COPYRIGHT
 
-Copyright 2012 Stella Hartono.
+Copyright 2012 Chedin Lab
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3
@@ -506,6 +508,12 @@ cpg file = $cpgFile
                         print "There are no No Skew Gene found!\n" if (-s $noskewfile == 0);
                 }
         }
+
+	system("mv $strongfile $projName") if (-e $strongfile and -s $strongfile != 0);
+	system("mv $weakfile $projName") if (-e $weakfile and -s $weakfile != 0);
+	system("mv $noskewfile $projName") if (-e $noskewfile and -s $noskewfile != 0);
+	system("mv $reversefile $projName") if (-e $reversefile and -s $reversefile != 0);
+	system("mv $bidirectfile $projName") if (-e $bidirectfile and -s $bidirectfile != 0);
 }
 
 1;

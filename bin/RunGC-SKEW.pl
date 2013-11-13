@@ -12,14 +12,22 @@ BEGIN {
 	# Check if SkewR.pm is succesfully pushed
 	my $libSkewRCheck = 0;
 	for (my $i = 0; $i < @INC; $i++) {
-		$libSkewRCheck = 1 if -e "$INC[$i]\/SkewR.pm";
+		my $lib = $INC[$i];
+		chomp($lib);
+		$lib =~ s/\n//g;
+		$lib =~ s/\r//g;
+		$libSkewRCheck = 1 if -e ("$lib\/SkewR.pm");
 	}
 
 	# Otherwise, ask user to put SkewR.pm to their perl library themselves
 	if ($libSkewRCheck == 0) {
 		print "Failed to put SkewR.pm into Perl library\nPlease manually copy SkewR.pm yourself to one of these Perl library folder:\n";
 		for (my $i = 1; $i <= @INC; $i++) {
-			print "$i. $INC[$i]\n";
+			my $lib = $INC[$i];
+			chomp($lib);
+			$lib =~ s/\n//g;
+			$lib =~ s/\r//g;
+			print "$i. $INC[$i-1]\n";
 		}
 		die "\n";
 	}
@@ -31,8 +39,8 @@ use Thread;
 use Thread::Queue;
 use Getopt::Std;
 use SkewR;
-use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_o $opt_z $opt_l $opt_g $opt_b);
-getopts("s:m:t:vho:z:l:g:b:");
+use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_o $opt_z $opt_l $opt_g $opt_b $opt_x $opt_y);
+getopts("s:m:t:vho:z:l:g:b:x:y:");
 
 my $version = "\nVERSION: 11/1/2013\n\n";
 die $version if ($opt_v);
@@ -40,17 +48,17 @@ die $version if ($opt_v);
 my ($seqFile, $modelFile, $threshold, $threads, $projName, $length, $geneFile, $cpgFile) = StochHMMToBed::check_sanity();
 
 print "Importing Fasta\n";
-my @splitFastaName = 0;#@{import_fasta($seqFile, $projName)};
+my @splitFastaName = @{import_fasta($seqFile, $projName)};
 print "Running StochHMM\n";
 stochHMM_decode(\@splitFastaName, $modelFile, $threads, $threshold);
 print "Deleting Fasta\n";
-#delete_fastas(@splitFastaName);
+delete_fastas(@splitFastaName);
 print "Converting Report\n";
 convert_report($projName, $length, $geneFile, $cpgFile, $threshold, @splitFastaName);
 print "Intersecting Skew Peaks with Gene Info\n";
 Intersect::main($projName, \@splitFastaName, $geneFile, $cpgFile);
 print "Deleting Reports\n";
-#delete_report($projName);
+delete_report($projName);
 
 ######################################################
 #	Run GC-Skew model on whole genome
