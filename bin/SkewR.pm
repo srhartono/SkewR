@@ -156,8 +156,8 @@ sub check_sanity {
 
         # Check if stochhmm is installed
 	my $stochHMMCheck = `which stochhmm`;
-	$stochHMMCheck = `which StochHMM` if not defined($stochHMMCheck);
-	die "Please install StochHMM 0.35 or newer (https://github.com/KorfLab/StochHMM)\n" if not defined($stochHMMCheck);
+	$stochHMMCheck = `which StochHMM` if $stochHMMCheck =~ /^$/;
+	die "Please install StochHMM 0.35 or newer (https://github.com/KorfLab/StochHMM)\n" if $stochHMMCheck =~ /^$/;
 	
 	# Check if bedtools is installed
 	my $bedtoolsCheck = `which bedtools`;
