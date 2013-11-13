@@ -153,12 +153,17 @@ sub main {
 }
 
 sub check_sanity {
+
+        # Check if stochhmm is installed
+	my $stochHMMCheck = `which stochhmm`;
+	$stochHMMCheck = `which StochHMM` if not defined($stochHMMCheck);
+	die "Please install StochHMM 0.35 or newer (https://github.com/KorfLab/StochHMM)\n" if not defined($stochHMMCheck);
 	
 	# Check if bedtools is installed
 	my $bedtoolsCheck = `which bedtools`;
 	die "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if not defined($bedtoolsCheck);
 	
-	# Check version, and warn user to install correct version if it's not defined
+	# Check bedtools version, and warn user to install correct version if it's not defined or less than 2
 	my $bedtoolsVer = `bedtools --version`;
 	warn "Please install bedtools version 2 or newer (https://code.google.com/p/bedtools/) before running!\n" if not defined($bedtoolsVer);
 	($bedtoolsVer) = $bedtoolsVer =~ /bedtools v(\d+)/;
