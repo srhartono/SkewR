@@ -215,7 +215,8 @@ sub convert_report {
 }
 
 sub delete_report {
-	system('rm -r -f *.prob');
+	my ($projName) = @_;
+	system('rm -r -f $projName\/*.prob');
 	return;
 }
 

@@ -188,14 +188,25 @@ sub check_sanity {
 	my $geneFile  = defined($main::opt_g) ? $main::opt_g : (print_usage() and die "Fatal Error: Missing gene file (-g)\n\n");
 	my $cpgFile   = defined($main::opt_b) ? $main::opt_b : (print_usage() and die "Fatal Error: Missing CpG file (-b)\n\n");
 
+	# Output directory
+	if (not -d $projName) {
+		system("mkdir $projName") == 0 or die "Failed to create directory for project name $projName: $!\n";
+		system("mkdir $projName\/temp");
+	}
+	else {
+		print "Warning: Directory exists, all files will be overwritten. Proceed? (Enter to proceed or Ctrl+C to cancel)";
+		system("mkdir $projName\/temp") if not -d "$projName\/temp";
+		<STDIN>;
+	}
+
 	# Filter
 	my $filter = defined($main::opt_f) ? $main::opt_f : 0;
         my $wrongFormat = 0;
 	my $geneFileName = getFilename($geneFile);
-	my $newGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
-	print "New Gene File = $newGeneFile\n";
-	open (my $out, ">", $newGeneFile) or die "Cannot write to $newGeneFile: $!\n";
-	open (my $in,  "<", $geneFile)    or die "Cannot read from $geneFile: $!\n";
+	my $filteredGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
+	print "Filtered Gene File = $filteredGeneFile\n";
+	open (my $out, ">", $filteredGeneFile) or die "Cannot write to $filteredGeneFile: $!\n";
+	open (my $in,  "<", $geneFile) or die "Cannot read from $geneFile: $!\n";
 	
 	my $skipped = 0;
 	my $total   = 0;
@@ -215,15 +226,15 @@ sub check_sanity {
 		print $out "$line\n";
 		$total ++;
 	}
-	print "$geneFile: Genes filtered because less than $filter bp = $skipped out of $total (output: $newGeneFile)\n";
+	print "Gene file $geneFile: Genes filtered because less than $filter bp = $skipped out of $total (output: $filteredGeneFile)\n";
 	close $in;
 	close $out;
 	
 	# Offset
-	die "Please intersect only with either TSS or TTS\n" if defined($main::opt_x) and defined($main::opt_y);
+	die "Fatal Error: Please intersect with either TSS (-x) or TTS (-y) and not both\n" if defined($main::opt_x) and defined($main::opt_y);
 	my $offset = defined($main::opt_x) ? $main::opt_x : defined($main::opt_y) ? $main::opt_y : "0,0";
 	if ($offset ne 1) {
-		die "-x or -y must be two comma separated integers (e.g. -x -200,500): $offset\n" if $offset !~ /^\-?\d+\,\-?\d+$/;
+		die "Fatal Error: -x or -y must be two comma separated integers (e.g. -x -200,500): $offset\n" if $offset !~ /^\-?\d+\,\-?\d+$/;
 	}
 
 	my $promoterfile = "$projName/temp/promoter.bed";
@@ -245,7 +256,8 @@ sub check_sanity {
 
 	my ($binDir) = $0 =~ /^(.+)RunGC-SKEW.pl$/;
 	$binDir = "./" if not defined($binDir);
-	system("$binDir\/bedtools_bed_change.pl $promoterTag -x $offset_min -y $offset_pos -o $maingeneFile -i $newGeneFile") == 0 or die "Failed to run Bedtools!\n";
+	print "Running $binDir\/bedtools_bed_change.pl $promoterTag -x $offset_min -y $offset_pos -o $maingeneFile -i $filteredGeneFile\n";
+	system("$binDir\/bedtools_bed_change.pl $promoterTag -x $offset_min -y $offset_pos -o $maingeneFile -i $filteredGeneFile") == 0 or die "Failed to run bedtools_bed_change.pl!: $!\n";
 
 	# Sequence
 	open (my $seqIn, "<", $seqFile) or die "Cannot read from $seqFile: $!\n";
@@ -270,14 +282,6 @@ sub check_sanity {
 	# Threads
 	print_usage() and die "Fatal Error: Threads must be a positive integer\n\n" if ($threads !~ /^\d+$/ or $threads < 0);
 	
-	# Output directory
-	if (not -d $projName) {
-		system("mkdir $projName") == 0 or die "Failed to create directory for project name $projName: $!\n";
-	}
-	else {
-		print "Warning: Directory exists, all files will be overwritten. Proceed? (Enter to proceed or Ctrl+C to cancel)";
-		<STDIN>;
-	}
 
 	# CpG File
 	open (my $cpgFileIn, "<", $cpgFile) or die "Cannot read from $cpgFile: $!\n\n";
@@ -470,19 +474,20 @@ sub main {
 
 	if (-s $probBedFile == 0) {
 		print "There are no SkewR peak found!\n";
+		print "\nSkewR Peak file: $probBedFile\n";
 		exit;
 	}
 
 	my $filter   = defined($main::opt_f) ? $main::opt_f : 0;
 	my $geneFileName = getFilename($geneFile);
-	my $newGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
-	$geneFile = $newGeneFile;
+	my $filteredGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
+	$geneFile = $filteredGeneFile;
 
 	my $promoterfile = "$projName/temp/promoter.bed";
 	my $TTSfile      = "$projName/temp/TTS.bed";
 	my $maingeneFile = defined($main::opt_y) ? $TTSfile : $promoterfile;
 
-	intersect($projName, $maingeneFile, $geneFile, $probBedFile, $cpgFile);
+	intersect_Old($projName, $maingeneFile, $geneFile, $probBedFile, $cpgFile);
 }
 
 sub intersect_Old {
@@ -551,11 +556,25 @@ CpG file = $cpgFile
                 }
         }
 
-	system("mv $strongfile $projName") if (-e $strongfile and -s $strongfile != 0);
-	system("mv $weakfile $projName") if (-e $weakfile and -s $weakfile != 0);
-	system("mv $noskewfile $projName") if (-e $noskewfile and -s $noskewfile != 0);
-	system("mv $reversefile $projName") if (-e $reversefile and -s $reversefile != 0);
-	system("mv $bidirectfile $projName") if (-e $bidirectfile and -s $bidirectfile != 0);
+	print "\nOutputs:\nSkewR Peak file: $probBedFile\n";
+	print "Skew Clases:\n";
+	print "Class I   (strong)  : $strongfile\n" if -e $strongfile;
+	print "Class II  (weak)    : $weakfile\n" if -e $weakfile;
+	print "Class III (none)    : $noskewfile\n" if -e $noskewfile;
+	print "Class IV  (reverse) : $reversefile\n" if -e $reversefile;
+	print "Bidirectional file  : $bidirectfile\n" if -e $bidirectfile;
+}
+
+sub getFilename {
+	my ($fh, $type) = @_;
+	my (@splitname) = split("\/", $fh);
+	my $name = $splitname[@splitname-1];
+	pop(@splitname);
+	my $folder = join("\/", @splitname);
+	@splitname = split(/\./, $name);
+	$name = $splitname[0];
+	return($name) if not defined($type);
+	return($folder, $name) if $type eq "folder";
 }
 
 1;
