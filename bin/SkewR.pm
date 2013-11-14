@@ -177,7 +177,6 @@ sub check_sanity {
 	# Help if nothing is input
 	print_usage() and die "Fatal Error: Missing input file\n\n" unless defined($main::opt_s) and defined($main::opt_m);
 	
-
 	# Variables
 	my $seqFile   = $main::opt_s;
 	my $modelFile = $main::opt_m;
@@ -189,12 +188,64 @@ sub check_sanity {
 	my $geneFile  = defined($main::opt_g) ? $main::opt_g : (print_usage() and die "Fatal Error: Missing gene file (-g)\n\n");
 	my $cpgFile   = defined($main::opt_b) ? $main::opt_b : (print_usage() and die "Fatal Error: Missing CpG file (-b)\n\n");
 
+	# Filter
+	my $filter = defined($main::opt_f) ? $main::opt_f : 0;
+        my $wrongFormat = 0;
+	my $geneFileName = getFilename($geneFile);
+	my $newGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
+	print "New Gene File = $newGeneFile\n";
+	open (my $out, ">", $newGeneFile) or die "Cannot write to $newGeneFile: $!\n";
+	open (my $in,  "<", $geneFile)    or die "Cannot read from $geneFile: $!\n";
+	
+	my $skipped = 0;
+	my $total   = 0;
+	while (my $line = <$in>) {
+		chomp($line);
+		next if $line =~ /\#/;
+		next if $line =~ /^track/;
+		my @line = split("\t", $line);
+		my ($chr, $start, $end, $name, $value, $strand) = @line;
+		$wrongFormat ++ if @line != 6; 
+	
+		# Only tolerate non-BED6 column less than 6 times
+		die "Fatal Error: Wrong format of Gene bed file $geneFile (Line has less than 6 column for more than 5 times)\n" if $wrongFormat > 5;
+		die "Fatal Error: Wrong format of Gene bed file $geneFile (Start coordinate is negative/not number)\n" if $start !~ /^\d+$/ or $end !~ /^\d+$/;
+		my $geneLength = $end - $start + 1;
+		$skipped ++ and next if $geneLength < $filter;
+		print $out "$line\n";
+		$total ++;
+	}
+	print "$geneFile: Genes filtered because less than $filter bp = $skipped out of $total (output: $newGeneFile)\n";
+	close $in;
+	close $out;
+	
 	# Offset
 	die "Please intersect only with either TSS or TTS\n" if defined($main::opt_x) and defined($main::opt_y);
 	my $offset = defined($main::opt_x) ? $main::opt_x : defined($main::opt_y) ? $main::opt_y : "0,0";
 	if ($offset ne 1) {
 		die "-x or -y must be two comma separated integers (e.g. -x -200,500): $offset\n" if $offset !~ /^\-?\d+\,\-?\d+$/;
 	}
+
+	my $promoterfile = "$projName/temp/promoter.bed";
+	my $TTSfile      = "$projName/temp/TTS.bed";
+	my $maingeneFile = $promoterfile;
+	my $promoterTag  = "-a";
+	my ($offset_min, $offset_pos) = (-500, 1500);
+	($offset_min, $offset_pos) = split(",", $main::opt_x) if defined($main::opt_x) and $main::opt_x ne 1;
+	if (defined($main::opt_y)) {
+		if ($main::opt_y eq 1) {
+			($offset_min, $offset_pos) = (-1500, 500);
+		}
+		else {
+			($offset_min, $offset_pos) = split(",", $main::opt_y);
+		}
+		$maingeneFile = $TTSfile;
+		$promoterTag  = "-b";
+	}
+
+	my ($binDir) = $0 =~ /^(.+)RunGC-SKEW.pl$/;
+	$binDir = "./" if not defined($binDir);
+	system("$binDir\/bedtools_bed_change.pl $promoterTag -x $offset_min -y $offset_pos -o $maingeneFile -i $newGeneFile") == 0 or die "Failed to run Bedtools!\n";
 
 	# Sequence
 	open (my $seqIn, "<", $seqFile) or die "Cannot read from $seqFile: $!\n";
@@ -412,7 +463,7 @@ sub main {
 	system("mkdir $projName/temp") if not -d "$projName/temp/";
 
 	my @splitFastaName = @{$splitFastaName};
-	my $probBedFile       = "$projName/$projName.bed";
+	my $probBedFile    = "$projName\/probBedFile.bed";
 	for (my $i = 0; $i < @splitFastaName; $i++) {
 		system("cat $splitFastaName[$i].bed >> $probBedFile") == 0 or die "Failed at merging probability files\n";
 	}
@@ -422,26 +473,14 @@ sub main {
 		exit;
 	}
 
+	my $filter   = defined($main::opt_f) ? $main::opt_f : 0;
+	my $geneFileName = getFilename($geneFile);
+	my $newGeneFile = "$projName/$geneFileName\_Filtered$filter.bed";
+	$geneFile = $newGeneFile;
+
 	my $promoterfile = "$projName/temp/promoter.bed";
 	my $TTSfile      = "$projName/temp/TTS.bed";
-	my $maingeneFile = $promoterfile;
-	my $promoterTag  = "-a";
-	my ($offset_min, $offset_pos) = (-500, 1500);
-	($offset_min, $offset_pos) = split(",", $main::opt_x) if defined($main::opt_x) and $main::opt_x ne 1;
-	if (defined($main::opt_y)) {
-		if ($main::opt_y eq 1) {
-			($offset_min, $offset_pos) = (-1500, 500);
-		}
-		else {
-			($offset_min, $offset_pos) = split(",", $main::opt_y);
-		}
-		$maingeneFile = $TTSfile;
-		$promoterTag  = "-b";
-	}
-
-	my ($binDir) = $0 =~ /^(.+)RunGC-SKEW.pl$/;
-	$binDir = "./" if not defined($binDir);
-	system("$binDir\/bedtools_bed_change.pl $promoterTag -x $offset_min -y $offset_pos -o $maingeneFile -i $geneFile") == 0 or die "Failed to run Bedtools!\n";
+	my $maingeneFile = defined($main::opt_y) ? $TTSfile : $promoterfile;
 
 	intersect($projName, $maingeneFile, $geneFile, $probBedFile, $cpgFile);
 }
@@ -450,10 +489,10 @@ sub intersect_Old {
         my ($projName, $maingeneFile, $geneFile, $probBedFile, $cpgFile) = @_;
 
         print "
-Project Name = $projName
+Output Directory = $projName
+SkewR peak file = $probBedFile
 Main Gene file = $geneFile
-probBedFile = $probBedFile
-cpg file = $cpgFile
+CpG file = $cpgFile
 ";
 
         my $gene_posfile = "$projName/gene_pos.txt";
