@@ -27,6 +27,8 @@ Ginno, P. A. P., Lott, P. L. P., Christensen, H. C. H., Korf, I. I. & Chédin, F
 Install Bedtools version 2.16 or newer `https://code.google.com/p/bedtools/`  
 Install StochHMM version 0.35 or newer `https://github.com/KorfLab/StochHMM`  
 Install GitHub in your system if you haven't done so  
+Install Perl 5.18.0 or newer (Older versions might NOT work)
+Install Thread::Queue 3.01 (If you are using older Perl version)
 
 ## 3. Synopsis
 
