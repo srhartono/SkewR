@@ -194,9 +194,9 @@ sub check_sanity {
 		system("mkdir $projName\/temp");
 	}
 	else {
-		print "Warning: Directory exists, all files will be overwritten. Proceed? (Enter to proceed or Ctrl+C to cancel)";
+		print "Warning: Directory exists, please remove all files or they will be overwritten/cause strange bugs!\n";
 		system("mkdir $projName\/temp") if not -d "$projName\/temp";
-		<STDIN>;
+#		<STDIN>;
 	}
 
 	# Filter
