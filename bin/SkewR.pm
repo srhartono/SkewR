@@ -521,7 +521,7 @@ CpG file = $cpgFile
         # Strong Skew Class     
         system("bedtools intersect -u -a $gene_posfile -b $bed_GSKEW >  $strongfile");
         system("bedtools intersect -u -a $gene_negfile -b $bed_CSKEW >> $strongfile");
-        print "There are no Strong Skew Genek found!\n" if (-s $strongfile == 0);
+        print "There are no Strong Skew Gene found!\n" if (-s $strongfile == 0);
 
         # Reverse Skew Class
         system("bedtools intersect -u -a $gene_negfile -b $bed_GSKEW >  $reversefile");

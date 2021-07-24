@@ -39,14 +39,14 @@ use Thread;
 use Thread::Queue;
 use Getopt::Std;
 use SkewR;
-use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_o $opt_z $opt_l $opt_g $opt_b $opt_x $opt_y $opt_f);
-getopts("s:m:t:vho:z:l:g:b:x:y:f:");
+use vars qw($opt_s $opt_m $opt_t $opt_v $opt_h $opt_o $opt_z $opt_l $opt_g $opt_b $opt_x $opt_y $opt_f $opt_c);
+getopts("s:m:t:vho:z:l:g:b:x:y:f:c:");
 
 my $version = "\nVERSION: 11/1/2013\n\n";
 die $version if ($opt_v);
 
 my ($seqFile, $modelFile, $threshold, $threads, $projName, $length, $geneFile, $cpgFile) = StochHMMToBed::check_sanity();
-
+my $chrWant = $opt_c if (defined $opt_c);
 print "Importing Fasta\n";
 my @splitFastaName = @{import_fasta($seqFile, $projName)};
 print "Running StochHMM\n";
@@ -94,8 +94,10 @@ sub import_fasta {
 		# Unless it's initial (not defined $chr)
 		if ($line =~ /^>/) {
 			if (defined($chr)) {
-				my $splitFastaName = output_fasta($chr, $seq, $projName);
-				push(@splitFastaName, $splitFastaName);
+				if (not defined $chrWant or (defined $chrWant and $chr eq $chrWant)) {
+					my $splitFastaName = output_fasta($chr, $seq, $projName);
+					push(@splitFastaName, $splitFastaName);
+				}
 			}
 			my @chr = split(" ", $line);
 			($chr) = $chr[0] =~ /^>(.+)$/;
@@ -107,8 +109,10 @@ sub import_fasta {
 		}
 	}
 	close $in;
-	my $splitFastaName = output_fasta($chr, $seq, $projName);
-	push(@splitFastaName, $splitFastaName);
+	if (not defined $chrWant or (defined $chrWant and $chr eq $chrWant)) {
+		my $splitFastaName = output_fasta($chr, $seq, $projName);
+		push(@splitFastaName, $splitFastaName);
+	}
 
 	return (\@splitFastaName);
 }
